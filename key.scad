@@ -3,6 +3,13 @@ use <lib/geometry/translate_and_mirror.scad>
 use <hot_swap_socket.scad>
 
 // ### Usage #########################################################
+
+#difference() {
+  prism([30, 30, 1.6], invert = true);
+  key_void();
+}
+
+color( "Beige" )
 key();
 hot_swap_socket();
 
@@ -17,6 +24,10 @@ body_slopeaway_depth = 2;
 flange_width = 15.5;
 
 eps = 0.01;
+
+module key_void() {
+  key();
+}
 
 module key() {
 
