@@ -31,19 +31,23 @@ difference() {
   mx_switch_sample_plate_pcb();
   mx_switch_cutout(fixation = true, led = true);
 }
-
+translate([-60, 0, 0])
+difference() {
+  mx_switch_sample_plate_pcb(2*mx_switch_plate_thickness_);
+  mx_switch_cutout();
+}
 
 // Sample Plate/PCB model
-module mx_switch_sample_plate_pcb() {
+module mx_switch_sample_plate_pcb(t = mx_switch_plate_thickness_) {
   sample_width = 20;
   difference() {
     union() {
       color( "Gray" )
-      prism([sample_width, sample_width, mx_switch_plate_thickness_], invert = true);
+      prism([sample_width, sample_width, t], invert = true);
 
       color( "SeaGreen" )
       translate([0, 0, -mx_switch_pcbtop_to_platetop_])
-      prism([sample_width, sample_width, mx_switch_plate_thickness_], invert = true);
+      prism([sample_width, sample_width, t], invert = true);
     }
     translate([sample_width/2, -sample_width/2, 0])
     cube([sample_width, sample_width, 20], center = true);
@@ -91,6 +95,9 @@ mx_switch_flange_height = 1;
 
 module mx_switch_cutout(led = false, diode = false, fixation = false) {
   eps = 0.01;
+  tab_cutout_width = 6;
+  tab_cutout_depth = 1;
+  
   // Main cutout through plate
   translate([0, 0, eps])
   prism([ mx_switch_frame_cutout_side_,
@@ -101,6 +108,13 @@ module mx_switch_cutout(led = false, diode = false, fixation = false) {
   prism([ mx_switch_flange_side_,
           mx_switch_flange_side_,
           1 ]);
+  // Tabs cutout
+  for (y = [-1, 1] / 2 * mx_switch_frame_cutout_side_)
+  translate([0, y, -mx_switch_plate_thickness_])
+  prism([ tab_cutout_width,
+          2*tab_cutout_depth,
+          mx_switch_pcbtop_to_platetop_ - mx_switch_plate_thickness_ ],
+        invert = true);
   // PCB pins
   translate([0, 0, -mx_switch_pcbtop_to_platetop_ - mx_switch_pin_length_]){
     // Center Pin
