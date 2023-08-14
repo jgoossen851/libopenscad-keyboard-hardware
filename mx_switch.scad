@@ -6,8 +6,9 @@ $fa = $preview ? 20 : 1;    // minimum angle for a fragment
 $fs = $preview ? 1 : 0.25;  // minimum size of a fragment
 
 // Constants, from datasheet
-mx_switch_plate_thickness_  = 1.5; // mm, 0.06"
-mx_switch_pcb_thickness_    = 1.5; // mm, 0.06"
+mx_switch_plate_thickness_  = 1.5;    // mm, 0.06"
+mx_switch_pcb_thickness_    = 1.5;    // mm, 0.06"
+mx_switch_nominal_pitch_    = 19.05;  // mm, 0.75"
 
 
 // Default Switch with mount hole in plate and PCB
@@ -18,39 +19,38 @@ difference() {
 mx_switch();
 
 // Custom Switchs
-translate([-20, 0, 0])
+translate([-mx_switch_nominal_pitch_, 0, 0])
 mx_switch(  stem = "Silver", bottom = "Beige", top = "Gainsboro", alpha = .5,
             fixation = true, led = true );
-translate([-20, 20, 0])
+translate([-mx_switch_nominal_pitch_, mx_switch_nominal_pitch_, 0])
 mx_switch( stem = "DodgerBlue", bottom = "LightSlateGray", top = "Azure",
          fixation = true, diode = true );
 
 // Plate/PCB mount hole only
-translate([-40, 0, 0])
+translate([-2 * mx_switch_nominal_pitch_, 0, 0])
 difference() {
   mx_switch_sample_plate_pcb();
   mx_switch_cutout(fixation = true, led = true);
 }
-translate([-60, 0, 0])
+translate([-3 * mx_switch_nominal_pitch_, 0, 0])
 difference() {
   mx_switch_sample_plate_pcb(2*mx_switch_plate_thickness_);
   mx_switch_cutout();
 }
 
 // Sample Plate/PCB model
-module mx_switch_sample_plate_pcb(t = mx_switch_plate_thickness_) {
-  sample_width = 20;
+module mx_switch_sample_plate_pcb(t = mx_switch_plate_thickness_, w = mx_switch_nominal_pitch_) {
   difference() {
     union() {
       color( "Gray" )
-      prism([sample_width, sample_width, t], invert = true);
+      prism([w, w, t], invert = true);
 
       color( "SeaGreen" )
       translate([0, 0, -mx_switch_pcbtop_to_platetop_])
-      prism([sample_width, sample_width, t], invert = true);
+      prism([w, w, t], invert = true);
     }
-    translate([sample_width/2, -sample_width/2, 0])
-    cube([sample_width, sample_width, 20], center = true);
+    translate([w/2, -w/2, 0])
+    cube([w, w, 20], center = true);
   }
 }
 
