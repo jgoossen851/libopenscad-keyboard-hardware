@@ -89,8 +89,11 @@ mx_switch_diode_pin_diameter_     = 1.0; // mm, 0.039"
 mx_switch_body_height_            = 11.6; // mm, 0.46"
 
 // Estimated constants
-mx_switch_stem_base_thickness = 0.5;
-mx_switch_flange_height = 1;
+mx_switch_stem_base_thickness_ = 0.5;
+mx_switch_flange_height_ = 1;
+
+// Publicly available constants
+function mx_switch_plate_to_keycap_seat() = mx_switch_body_height_ - mx_switch_pcbtop_to_platetop_;
 
 
 module mx_switch_cutout(offset = 0.01, led = false, diode = false, fixation = false) {
@@ -156,10 +159,10 @@ module mx_switch_body_top() {
   flange_width = 0.5;
   body_taper_top = 1.5;
 
-  translate([0, 0, mx_switch_flange_height])
+  translate([0, 0, mx_switch_flange_height_])
   prism_tapered_cuboid( [ mx_switch_frame_cutout_side_,
                           mx_switch_flange_side_ - 2*flange_width,
-                          mx_switch_body_height_ - mx_switch_pcbtop_to_platetop_ - mx_switch_stem_base_thickness - mx_switch_flange_height],
+                          mx_switch_body_height_ - mx_switch_pcbtop_to_platetop_ - mx_switch_stem_base_thickness_ - mx_switch_flange_height_],
                         taper = body_taper_top);
 }
 
@@ -186,16 +189,16 @@ module mx_switch_body_bottom() {
         hull() {
           for (xy = [[1, 1], [1, -1], [-1, -1], [-1, 1]]) {
             translate((mx_switch_flange_side_/2 - flange_corner_radius) * concat(xy, 0))
-            cylinder(h = mx_switch_flange_height, r = flange_corner_radius);
+            cylinder(h = mx_switch_flange_height_, r = flange_corner_radius);
           }
         }
         // Cutouts in flange
-        cube([2*mx_switch_flange_side_ , flange_side_cutout_length, 3*mx_switch_flange_height], center = true);
+        cube([2*mx_switch_flange_side_ , flange_side_cutout_length, 3*mx_switch_flange_height_], center = true);
         for(y = [-1, 1] * mx_switch_flange_side_/2) {
           translate([0, y, 0])
           cube( [ flange_tab_cutout_length,
                   mx_switch_flange_side_ - mx_switch_frame_cutout_side_,
-                  mx_switch_flange_height ],
+                  mx_switch_flange_height_ ],
                 center = true);
         }
         
@@ -205,11 +208,11 @@ module mx_switch_body_bottom() {
       intersection() {
         prism_tapered_cuboid( [ body_base_width,
                                 body_base_width,
-                                mx_switch_pcbtop_to_platetop_ + mx_switch_flange_height],
+                                mx_switch_pcbtop_to_platetop_ + mx_switch_flange_height_],
                               taper = -body_taper_bottom);
         prism( [mx_switch_frame_cutout_side_,
                 mx_switch_frame_cutout_side_,
-                mx_switch_pcbtop_to_platetop_ + mx_switch_flange_height ] );
+                mx_switch_pcbtop_to_platetop_ + mx_switch_flange_height_ ] );
       }
     }
     // Tab cutouts
@@ -218,7 +221,7 @@ module mx_switch_body_bottom() {
         translate([x, y, 0]) 
         cube( [ (flange_tab_cutout_length - flange_tab_length)/2,
                 2*flange_tab_cutout_depth,
-                2.5 * mx_switch_flange_height + eps ],
+                2.5 * mx_switch_flange_height_ + eps ],
               center = true);
       }
     }
@@ -244,7 +247,7 @@ module mx_switch_stem() {
     // Stem Base
     prism_tapered_cuboid( [ stem_base_x,
                             stem_base_y,
-                            -2*mx_switch_stem_base_thickness ],
+                            -2*mx_switch_stem_base_thickness_ ],
                           taper = -2*stem_base_taper);
     // Stem
     intersection() {
