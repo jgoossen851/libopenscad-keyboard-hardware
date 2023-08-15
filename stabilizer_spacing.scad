@@ -19,3 +19,20 @@ function stabilizer_spacing(w =1) =
     : w < 7     ? 100     // mm, 3.94" (6.25u stabilizer)
     : w < 8     ? 114.3   // mm, 4.5" (7u stabilizer)
     :             133.35; // mm, 5.25" (8u stabilizer)
+
+module stabilizer_spacing_layout(w = 1, d = 1) {
+  // Horizontal stabilizer
+  stab_dist_w = stabilizer_spacing(w);
+  if (stab_dist_w != 0) {
+    for (x = [-1, 1]*stab_dist_w/2)
+    translate([x, 0, 0])
+    children();
+  }
+  // Vertical stabilizer
+  stab_dist_d = stabilizer_spacing(d);
+  if (stab_dist_d != 0) {
+    for (y = [-1, 1]*stab_dist_d/2)
+    translate([0, y, 0])
+    children();
+  }
+}
