@@ -41,16 +41,22 @@ module keycap(u = 19.05, d = 1, w = 1, h = 7.25,
                               h - thickness + eps],
                             taper);
     }
-    keycap_pillars_(h - thickness + eps, w);
+    keycap_pillars_(h - thickness + eps, w, d);
   }
 }
 
-module keycap_pillars_(h, w = 1) {
+module keycap_pillars_(h, w = 1, d = 1) {
   keycap_pillar_(h);
-  stab_dist = stabilizer_spacing(w);
-  if (stab_dist != 0) {
-    for (x = [-1, 1]*stab_dist/2)
+  stab_dist_w = stabilizer_spacing(w);
+  if (stab_dist_w != 0) {
+    for (x = [-1, 1]*stab_dist_w/2)
     translate([x, 0, 0])
+    keycap_pillar_(h);
+  }
+  stab_dist_d = stabilizer_spacing(d);
+  if (stab_dist_d != 0) {
+    for (y = [-1, 1]*stab_dist_d/2)
+    translate([0, y, 0])
     keycap_pillar_(h);
   }
 }
