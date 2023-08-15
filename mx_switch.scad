@@ -120,12 +120,10 @@ module mx_switch_cutout(offset = 0.01, led = false, diode = false, fixation = fa
           2*tab_cutout_depth,
           mx_switch_pcbtop_to_platetop_ - mx_switch_plate_thickness_ - 2*previewOffset ],
         invert = true);
+  // Center Pin
+  mx_switch_center_pin(eps);
   // PCB pins
   translate([0, 0, -mx_switch_pcbtop_to_platetop_ - mx_switch_pin_length_]){
-    // Center Pin
-    mx_switch_pin_( v = mx_switch_center_pin_location_,
-                    d = mx_switch_center_pin_diameter_,
-                    h = mx_switch_pin_length_ + eps);
     // Fixation Pins
     if (fixation)
     mx_switch_pin_( v = mx_switch_fixation_pin_location_,
@@ -146,6 +144,13 @@ module mx_switch_cutout(offset = 0.01, led = false, diode = false, fixation = fa
                     d = mx_switch_diode_pin_diameter_,
                     h = mx_switch_pin_length_ + eps);
   }
+}
+
+module mx_switch_center_pin(eps = 0) {
+  translate([0, 0, -mx_switch_pcbtop_to_platetop_ - mx_switch_pin_length_])
+  mx_switch_pin_( v = mx_switch_center_pin_location_,
+                  d = mx_switch_center_pin_diameter_,
+                  h = mx_switch_pin_length_ + eps);
 }
 
 module mx_switch_pin_(v, d, h) {
