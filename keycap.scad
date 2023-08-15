@@ -1,4 +1,5 @@
 use <lib/geometry/prism.scad>
+use <stabilizer_spacing.scad>
 
 // ### Usage #########################################################
 
@@ -12,6 +13,11 @@ color( "Gray" )
 translate([19.05*1.5, 0, 0])
 keycap(w = 2);
 
+wvec = [1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3, 5.5, 6.25, 7, 8];
+translate([-19.05, 0, 0])
+for (iw = [0 : len(wvec) - 1])
+  translate([0, 19.05*iw, 0])
+  keycap(w = wvec[iw]);
 
 // ### Module ########################################################
 
@@ -25,7 +31,6 @@ module keycap(u = 19.05, d = 1, w = 1, h = 7.25,
               taper = 3.15, z_offset = 0, clearance = 0.75) {
   eps = 0.01;
   thickness = 1.2;
-  center_diameter = 5.4;
 
   translate([0, 0, z_offset]) {
     difference() {
@@ -36,6 +41,21 @@ module keycap(u = 19.05, d = 1, w = 1, h = 7.25,
                               h - thickness + eps],
                             taper);
     }
-    cylinder( h = h - thickness + eps, d = center_diameter);
+    keycap_pillars_(h - thickness + eps, w);
   }
+}
+
+module keycap_pillars_(h, w = 1) {
+  keycap_pillar_(h);
+  stab_dist = stabilizer_spacing(w);
+  if (stab_dist != 0) {
+    for (x = [-1, 1]*stab_dist/2)
+    translate([x, 0, 0])
+    keycap_pillar_(h);
+  }
+}
+
+module keycap_pillar_(h) {
+  center_diameter = 5.4;
+  cylinder( h = h, d = center_diameter);
 }
