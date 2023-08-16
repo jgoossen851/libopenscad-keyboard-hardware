@@ -12,46 +12,51 @@ mx_switch_plate_thickness_  = 1.5;    // mm, 0.06"
 mx_switch_pcb_thickness_    = 1.5;    // mm, 0.06"
 mx_switch_nominal_pitch_    = 19.05;  // mm, 0.75"
 
+// Switch configurations to test
+vec_x_w_color_geom = [
+  // Default Switch
+  [0, 2, [], []],
+  // Custom Switches
+  [-2.75, 2.75, ["Silver", "Beige", "Gainsboro", 0.5]],
+  [-7.5, 6.25, ["DodgerBlue", "LightSlateGray", "Azure"]]
+];
 
-// Default Switch with mount hole in plate and PCB
-difference() {
-  mx_switch_sample_plate_pcb();
-  mx_stabilizer_cutout();
-}
+for (x_w_color_geom = vec_x_w_color_geom) {
+  // Parse parameters
+  dx = x_w_color_geom[0] * mx_switch_nominal_pitch_;
+  w  = x_w_color_geom[1];
+  switch_color = [
+    len(x_w_color_geom[2]) > 0 ? x_w_color_geom[2][0] : "Red",
+    len(x_w_color_geom[2]) > 1 ? x_w_color_geom[2][1] : "#222222",
+    len(x_w_color_geom[2]) > 2 ? x_w_color_geom[2][2] : "#222222",
+    len(x_w_color_geom[2]) > 3 ? x_w_color_geom[2][3] : 1,
+  ];
 
-translate([0, 19.05, 0])
-difference() {
-  mx_switch_sample_plate_pcb(w = 60);
-  mx_stabilizer_cutout(w = 6.25);
-}
 
-// Plate/PCB mount hole only
-translate([-4 * mx_switch_nominal_pitch_, 0, 0])
-difference() {
-  mx_switch_sample_plate_pcb();
-  mx_stabilizer_cutout();
-}
-translate([-6 * mx_switch_nominal_pitch_, 0, 0])
-difference() {
-  mx_switch_sample_plate_pcb(2*mx_switch_plate_thickness_);
-  mx_stabilizer_cutout();
-}
-
-// Sample Plate/PCB model
-module mx_switch_sample_plate_pcb(t = mx_switch_plate_thickness_, w = mx_switch_nominal_pitch_, d = mx_switch_nominal_pitch_) {
-  difference() {
-    union() {
-      color( "Gray" )
-      prism([2*w, d, t], invert = true);
-
-      color( "SeaGreen" )
-      translate([0, 0, -mx_switch_pcbtop_to_platetop_])
-      prism([2*w, d, mx_switch_pcb_thickness_], invert = true);
+  translate([dx, 0, 0]) {
+    // Nominal Plate Cutout
+    translate([0, 1.5*mx_switch_nominal_pitch_, 0])
+    difference() {
+      mx_switch_test_jig(w = w);
+      mx_stabilizer_cutout(w = w);
     }
-    translate([w, -d/2, 0])
-    cube([2*w, d, 20], center = true);
+
+    // Cutout in oversided plate
+    translate([0, 3*mx_switch_nominal_pitch_, 0])
+    difference() {
+      mx_switch_test_jig(t = mx_switch_plate_thickness_*2.5, w = w, lip = 0.5);
+      mx_stabilizer_cutout(w = w);
+    }
+
+    // Component in Space
+    *mx_stabilizer(stem = switch_color[0], bottom = switch_color[1], top = switch_color[2], alpha = switch_color[3]);
+
+    // Component in oversized cutout
+    *translate([0, 3*mx_switch_nominal_pitch_, 0])
+    mx_stabilizer(stem = switch_color[0], bottom = switch_color[1], top = switch_color[2], alpha = switch_color[3]);
   }
 }
+
 
 
 // ### Module ########################################################
@@ -71,7 +76,7 @@ mx_stabilizer_channel_step_from_cutout_2u_  =  0.80; // mm, 0.0315"
 mx_stabilizer_channel_width_narrow_         =  4.6;  // mm, 0.181"
 
 
-module mx_stabilizer_cutout(w = 2) {
+module mx_stabilizer_cutout(w = 2, d = 1) {
   previewOffset = $preview ? 0.01 : 0; // Fix graphic rendering for adjacent surfaces
   eps = 0.01;
 

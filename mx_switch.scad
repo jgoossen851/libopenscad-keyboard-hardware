@@ -10,47 +10,74 @@ mx_switch_plate_thickness_  = 1.5;    // mm, 0.06"
 mx_switch_pcb_thickness_    = 1.5;    // mm, 0.06"
 mx_switch_nominal_pitch_    = 19.05;  // mm, 0.75"
 
+// Switch configurations to test
+vec_x_w_color_geom = [
+  // Default Switch
+  [0, 1, [], []],
+  // Custom Switches
+  [-1, 1, ["Silver", "Beige", "Gainsboro", 0.5], [true, false, true]],
+  [-2, 1, ["DodgerBlue", "LightSlateGray", "Azure"], [false, true, true]]
+];
 
-// Default Switch with mount hole in plate and PCB
-difference() {
-  mx_switch_sample_plate_pcb();
-  mx_switch_cutout();
+for (x_w_color_geom = vec_x_w_color_geom) {
+  // Parse parameters
+  dx = x_w_color_geom[0] * mx_switch_nominal_pitch_;
+  w  = x_w_color_geom[1];
+  switch_color = [
+    len(x_w_color_geom[2]) > 0 ? x_w_color_geom[2][0] : "Red",
+    len(x_w_color_geom[2]) > 1 ? x_w_color_geom[2][1] : "#222222",
+    len(x_w_color_geom[2]) > 2 ? x_w_color_geom[2][2] : "#222222",
+    len(x_w_color_geom[2]) > 3 ? x_w_color_geom[2][3] : 1,
+  ];
+  switch_geom = [
+    len(x_w_color_geom[3]) > 0 ? x_w_color_geom[3][0] : false,
+    len(x_w_color_geom[3]) > 1 ? x_w_color_geom[3][1] : false,
+    len(x_w_color_geom[3]) > 2 ? x_w_color_geom[3][2] : false
+  ];
+
+
+  translate([dx, 0, 0]) {
+    // Nominal Plate Cutout
+    translate([0, 1.5*mx_switch_nominal_pitch_, 0])
+    difference() {
+      mx_switch_test_jig(w = w);
+      mx_switch_cutout(led = switch_geom[0], diode = switch_geom[1], fixation = switch_geom[2]);
+    }
+
+    // Cutout in oversided plate
+    translate([0, 3*mx_switch_nominal_pitch_, 0])
+    difference() {
+      mx_switch_test_jig(t = mx_switch_plate_thickness_*2.5, w = w, lip = 0.5);
+      mx_switch_cutout(led = switch_geom[0], diode = switch_geom[1], fixation = switch_geom[2]);
+    }
+
+    // Component in Space
+    mx_switch(stem = switch_color[0], bottom = switch_color[1], top = switch_color[2], alpha = switch_color[3],
+          led = switch_geom[0], diode = switch_geom[1], fixation = switch_geom[2]);
+
+    // Component in oversized cutout
+    translate([0, 3*mx_switch_nominal_pitch_, 0])
+    mx_switch(stem = switch_color[0], bottom = switch_color[1], top = switch_color[2], alpha = switch_color[3],
+          led = switch_geom[0], diode = switch_geom[1], fixation = switch_geom[2]);
+  }
 }
-mx_switch();
 
-// Custom Switches
-translate([-mx_switch_nominal_pitch_, 0, 0])
-mx_switch(  stem = "Silver", bottom = "Beige", top = "Gainsboro", alpha = .5,
-            fixation = true, led = true );
-translate([-mx_switch_nominal_pitch_, mx_switch_nominal_pitch_, 0])
-mx_switch( stem = "DodgerBlue", bottom = "LightSlateGray", top = "Azure",
-         fixation = true, diode = true );
 
-// Plate/PCB mount hole only
-translate([-2 * mx_switch_nominal_pitch_, 0, 0])
-difference() {
-  mx_switch_sample_plate_pcb();
-  mx_switch_cutout(fixation = true, led = true);
-}
-translate([-3 * mx_switch_nominal_pitch_, 0, 0])
-difference() {
-  mx_switch_sample_plate_pcb(2*mx_switch_plate_thickness_);
-  mx_switch_cutout();
-}
-
-// Sample Plate/PCB model
-module mx_switch_sample_plate_pcb(t = mx_switch_plate_thickness_, w = mx_switch_nominal_pitch_) {
+module mx_switch_test_jig(t = mx_switch_plate_thickness_, w = 1, d = 1, lip = 0) {
+  w = w * mx_switch_nominal_pitch_;
+  d = d * mx_switch_nominal_pitch_;
   difference() {
     union() {
       color( "Gray" )
-      prism([w, w, t], invert = true);
+      translate([0, 0, lip])
+      prism([w, d, t + lip], invert = true);
 
       color( "SeaGreen" )
       translate([0, 0, -mx_switch_pcbtop_to_platetop_])
-      prism([w, w, mx_switch_pcb_thickness_], invert = true);
+      prism([w, d, mx_switch_pcb_thickness_], invert = true);
     }
-    translate([w/2, -w/2, 0])
-    cube([w, w, 20], center = true);
+    translate([w/2, -d/2, 0])
+    cube([w, d, 20], center = true);
   }
 }
 
