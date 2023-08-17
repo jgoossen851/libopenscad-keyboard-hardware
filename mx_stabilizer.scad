@@ -146,5 +146,14 @@ module mx_stabilizer_cutout(w = 2, d = 1) {
               invert = true);
       }
     }
+
+    // Cutout for stabilizer bar itself
+    translate([0, (-mx_stabilizer_cutout_center_to_front_ - mx_stabilizer_tab_barside_bottom_depth_)/2, -mx_switch_plate_thickness_ - previewOffset])
+    hull()
+    stabilizer_spacing_layout(w)
+    prism([ eps + 1,
+              mx_stabilizer_cutout_center_to_front_ + mx_stabilizer_tab_barside_bottom_depth_,
+              mx_switch_pcbtop_to_platetop_ - mx_switch_plate_thickness_ - 2*previewOffset],
+            invert = true);
   }
 }
