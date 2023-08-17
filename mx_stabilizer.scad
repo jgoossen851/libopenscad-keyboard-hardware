@@ -86,7 +86,7 @@ module mx_stabilizer_cutout(w = 2, d = 1) {
   previewOffset = $preview ? 0.01 : 0; // Fix graphic rendering for adjacent surfaces
   eps = 0.01;
 
-  cutout_z_max = 1; // Amount to extend cutout into space above plate's z=0 plane
+  cutout_z_max = 5; // Amount to extend cutout into space above plate's z=0 plane
 
   /// ToDo: Rotate module if d > w, and set d = w.
 

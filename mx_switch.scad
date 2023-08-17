@@ -128,6 +128,8 @@ module mx_switch_cutout(offset = 0.01, led = false, diode = false, fixation = fa
   eps = 0.01;
   tab_cutout_width = 6;
   tab_cutout_depth = 1;
+
+  cutout_z_max = 5; // Amount to extend cutout into space above plate's z=0 plane
   
   // Main cutout through plate
   translate([0, 0, eps + previewOffset])
@@ -139,7 +141,7 @@ module mx_switch_cutout(offset = 0.01, led = false, diode = false, fixation = fa
   translate([0, 0, previewOffset])
   prism([ mx_switch_flange_side_,
           mx_switch_flange_side_,
-          1 ]);
+          cutout_z_max ]);
   // Tabs cutout
   for (y = [-1, 1] / 2 * mx_switch_frame_cutout_side_)
   translate([0, y, -mx_switch_plate_thickness_ - previewOffset])
