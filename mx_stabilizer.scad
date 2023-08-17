@@ -37,14 +37,14 @@ for (x_w_color_geom = vec_x_w_color_geom) {
     // Nominal Plate Cutout
     translate([0, 1.5*mx_switch_nominal_pitch_, 0])
     difference() {
-      mx_switch_test_jig(w = w);
+      mx_switch_test_jig(w = w, d = 1.25);
       mx_stabilizer_cutout(w = w);
     }
 
     // Cutout in oversided plate
     translate([0, 3*mx_switch_nominal_pitch_, 0])
     difference() {
-      mx_switch_test_jig(t = mx_switch_plate_thickness_*2.5, w = w, lip = 0.5);
+      mx_switch_test_jig(t = mx_switch_plate_thickness_*1.5, w = w, d = 1.25, lip = 0.5);
       mx_stabilizer_cutout(w = w);
     }
 
@@ -75,10 +75,18 @@ mx_stabilizer_side_tab_depth_from_middle_   =  4.2;  // mm, 0.165"
 mx_stabilizer_channel_step_from_cutout_2u_  =  0.80; // mm, 0.0315"
 mx_stabilizer_channel_width_narrow_         =  4.6;  // mm, 0.181"
 
+// Assumed constants
+mx_stabilizer_tab_barside_top_depth_ = 2.5;
+mx_stabilizer_tab_barside_bottom_depth_ = 3.55;
+mx_stabilizer_tab_clipside_top_depth_ = 3;
+mx_stabilizer_tab_clipside_bottom_depth_ = 2.3;
+
 
 module mx_stabilizer_cutout(w = 2, d = 1) {
   previewOffset = $preview ? 0.01 : 0; // Fix graphic rendering for adjacent surfaces
   eps = 0.01;
+
+  cutout_z_max = 1; // Amount to extend cutout into space above plate's z=0 plane
 
   /// ToDo: Rotate module if d > w, and set d = w.
 
@@ -92,11 +100,26 @@ module mx_stabilizer_cutout(w = 2, d = 1) {
 
       translate([0, 0, eps + previewOffset]) {
         // Main cutout through plate
-        translate([0, mx_stabilizer_cutout_depth_/2 - mx_stabilizer_cutout_center_to_front_, 0])
-        prism([ mx_stabilizer_cutout_width_,
-                mx_stabilizer_cutout_depth_,
-                mx_switch_pcbtop_to_platetop_ + eps ],
-              invert = true);
+        translate([0, mx_stabilizer_cutout_depth_/2 - mx_stabilizer_cutout_center_to_front_, 0]) {
+          prism([ mx_stabilizer_cutout_width_,
+                  mx_stabilizer_cutout_depth_,
+                  mx_switch_pcbtop_to_platetop_ + eps ],
+                invert = true);
+          
+          // Flange seating surface (top side), in case the key-hole is inset in plate
+          translate([0, (mx_stabilizer_tab_clipside_top_depth_ - mx_stabilizer_tab_barside_top_depth_)/2, -eps])
+          prism([ mx_stabilizer_cutout_width_,
+                    mx_stabilizer_cutout_depth_ + mx_stabilizer_tab_barside_top_depth_ + mx_stabilizer_tab_clipside_top_depth_,
+                    cutout_z_max + eps]);
+
+          // Tab seating surface (bottom side), in case the key-hole is inset in plate
+          translate([0, (mx_stabilizer_tab_clipside_bottom_depth_ - mx_stabilizer_tab_barside_bottom_depth_)/2, -mx_switch_plate_thickness_ - previewOffset])
+          prism([ mx_stabilizer_cutout_width_,
+                    mx_stabilizer_cutout_depth_ + mx_stabilizer_tab_barside_bottom_depth_ + mx_stabilizer_tab_clipside_bottom_depth_,
+                    mx_switch_pcbtop_to_platetop_ - mx_switch_plate_thickness_ - 2*previewOffset],
+                  invert = true);
+        }
+
         // Front tabs
         translate([0, -mx_stabilizer_cutout_center_to_front_, 0])
         prism([ mx_stabilizer_front_tab_width_,
@@ -104,22 +127,22 @@ module mx_stabilizer_cutout(w = 2, d = 1) {
                 mx_switch_pcbtop_to_platetop_ + eps ],
               invert = true);
         // Side tabs
-        translate([0, mx_stabilizer_side_tab_width_/2 + mx_stabilizer_side_tab_offset_from_center_, 0])
+        translate([0, mx_stabilizer_side_tab_width_/2 + mx_stabilizer_side_tab_offset_from_center_, cutout_z_max])
         prism([ 2*mx_stabilizer_side_tab_depth_from_middle_,
                 mx_stabilizer_side_tab_width_,
-                mx_switch_pcbtop_to_platetop_ + eps ],
+                mx_switch_pcbtop_to_platetop_ + eps + cutout_z_max ],
               invert = true);
       }
     }
 
     // Central bar cutout
-    translate([0, 0, eps + previewOffset]) {
+    translate([0, 0, eps + previewOffset + cutout_z_max]) {
       hull()
       translate([0, w <= 3 ? mx_stabilizer_cutout_depth_/2 - mx_stabilizer_cutout_center_to_front_ : 0, 0])
       stabilizer_spacing_layout(w) {
         prism([ eps,
                 w <= 3 ? mx_stabilizer_cutout_depth_ - 2*mx_stabilizer_channel_step_from_cutout_2u_ : mx_stabilizer_channel_width_narrow_,
-                mx_switch_pcbtop_to_platetop_ + eps ],
+                mx_switch_pcbtop_to_platetop_ + eps + cutout_z_max ],
               invert = true);
       }
     }

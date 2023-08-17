@@ -47,7 +47,7 @@ for (x_w_color_geom = vec_x_w_color_geom) {
     // Cutout in oversided plate
     translate([0, 3*mx_switch_nominal_pitch_, 0])
     difference() {
-      mx_switch_test_jig(t = mx_switch_plate_thickness_*2.5, w = w, lip = 0.5);
+      mx_switch_test_jig(t = mx_switch_plate_thickness_*1.5, w = w, lip = 0.5);
       mx_switch_cutout(led = switch_geom[0], diode = switch_geom[1], fixation = switch_geom[2]);
     }
 
