@@ -81,6 +81,10 @@ mx_stabilizer_tab_barside_bottom_depth_ = 3.55;
 mx_stabilizer_tab_clipside_top_depth_ = 3;
 mx_stabilizer_tab_clipside_bottom_depth_ = 2.3;
 
+// Configured constants
+mx_printer_tolerance_cutout_xy_ = 0.1;
+mx_printer_tolerance_cutout_z_ = 0.2;
+
 
 module mx_stabilizer_cutout(w = 2, d = 1) {
   previewOffset = $preview ? 0.01 : 0; // Fix graphic rendering for adjacent surfaces
@@ -110,6 +114,12 @@ module mx_stabilizer_cutout(w = 2, d = 1) {
           translate([0, (mx_stabilizer_tab_clipside_top_depth_ - mx_stabilizer_tab_barside_top_depth_)/2, -eps])
           prism([ mx_stabilizer_cutout_width_,
                     mx_stabilizer_cutout_depth_ + mx_stabilizer_tab_barside_top_depth_ + mx_stabilizer_tab_clipside_top_depth_,
+                    cutout_z_max + eps]);
+
+          // Flange "chamfer" for printer tolerances
+          translate([0,0, -mx_printer_tolerance_cutout_z_ - eps])
+          prism([ mx_stabilizer_cutout_width_ + 2*mx_printer_tolerance_cutout_xy_,
+                    mx_stabilizer_cutout_depth_ + 2*mx_printer_tolerance_cutout_xy_,
                     cutout_z_max + eps]);
 
           // Tab seating surface (bottom side), in case the key-hole is inset in plate
