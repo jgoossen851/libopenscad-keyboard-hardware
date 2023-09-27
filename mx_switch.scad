@@ -84,6 +84,7 @@ module mx_switch_test_jig(t = mx_switch_plate_thickness_, w = 1, d = 1, lip = 0)
 
 // ### Module ########################################################
 
+// Full colored 3D switch assembly
 module mx_switch( stem = "Red", top = "#222222", bottom = "#222222", alpha = 1,
                   led = false, diode = false, fixation = false ) {
   color( bottom )             mx_switch_body_bottom();
@@ -149,19 +150,10 @@ module mx_switch_cutout(offset = 0.01, led = false, diode = false, fixation = fa
           2*tab_cutout_depth,
           mx_switch_pcbtop_to_platetop_ - mx_switch_plate_thickness_ - 2*previewOffset ],
         invert = true);
-  // Center Pin
-  mx_switch_center_pin(eps);
-  // PCB pins
+  // Center pin and PCB pins
   translate([0, 0, -mx_switch_pcbtop_to_platetop_ - mx_switch_pin_length_])
-  linear_extrude(height = mx_switch_pin_length_ + eps)
-  mx_switch_pins_2d(switch = true, led = led, diode = diode, fixation = fixation);
-}
-
-module mx_switch_center_pin(eps = 0) {
-  translate([0, 0, -mx_switch_pcbtop_to_platetop_ - mx_switch_pin_length_])
-  linear_extrude(height = mx_switch_pin_length_ + eps)
-  mx_switch_pin_2d_( v = mx_switch_center_pin_location_,
-                     d = mx_switch_center_pin_diameter_);
+  linear_extrude(height = mx_switch_pin_length_ + eps, convexity = 2)
+  mx_switch_pins_2d(stabilizer = true, switch = true, led = led, diode = diode, fixation = fixation);
 }
 
 
@@ -236,11 +228,11 @@ module mx_switch_body_bottom() {
       }
     }
   }
-      // Bottom Stabilizer Pin
-      translate([0, 0, -mx_switch_pcbtop_to_platetop_ - body_stab_pin_depth])
-      linear_extrude(height = body_stab_pin_depth)
-      mx_switch_pin_2d_( v = mx_switch_center_pin_location_,
-                         d = mx_switch_center_pin_diameter_);
+
+  // Bottom Stabilizer Pin
+  translate([0, 0, -mx_switch_pcbtop_to_platetop_ - body_stab_pin_depth])
+  linear_extrude(height = body_stab_pin_depth)
+  mx_switch_pins_2d (stabilizer = true, switch = false);
 }
 
 module mx_switch_stem() {
@@ -273,17 +265,22 @@ module mx_switch_stem() {
   }
 }
 
+// 3D model of all pins, excluding centeral stabilizer
 module mx_switch_pins(led = false, diode = false, fixation = false) {
   eps = 0.1;
   pin_diameter = 1;
 
   translate([0, 0, -mx_switch_pcbtop_to_platetop_ - mx_switch_pin_length_])
   linear_extrude(height = mx_switch_pin_length_ + eps)
-  mx_switch_pins_2d(switch = true, led = led, diode = diode, fixation = fixation, clearance = -0.5);
+  mx_switch_pins_2d(stabilizer = false, switch = true, led = led, diode = diode, fixation = fixation, clearance = -0.5);
 }
 
 // 2D outline of pin cutouts
-module mx_switch_pins_2d(switch = true, led = false, diode = false, fixation = false, clearance = 0) {
+module mx_switch_pins_2d (stabilizer = true, switch = true, led = false, diode = false, fixation = false, clearance = 0) {
+  // Central Stabilizer
+  if (stabilizer)
+  mx_switch_pin_2d_( v = mx_switch_center_pin_location_,
+                     d = mx_switch_center_pin_diameter_); // No clearance on stabilizer for tight fit
   // Fixation Pins
   if (fixation)
   mx_switch_pin_2d_( v = mx_switch_fixation_pin_location_,
@@ -303,7 +300,7 @@ module mx_switch_pins_2d(switch = true, led = false, diode = false, fixation = f
 }
 
 // Places a circle of diameter d at each (x,y) pair given in v
-module mx_switch_pin_2d_(v, d) {
+module mx_switch_pin_2d_ (v, d) {
   for (xy = v) {
     translate(xy)
     circle(d = d);
