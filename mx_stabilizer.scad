@@ -99,8 +99,6 @@ module mx_stabilizer_cutout(w = 2, d = 1) {
     A = stabilizer_spacing(w);
 
     stabilizer_spacing_layout(w) {
-      // Center hole
-      mx_switch_center_pin(eps);
 
       translate([0, 0, eps + previewOffset]) {
         // Main cutout through plate
