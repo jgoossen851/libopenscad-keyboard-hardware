@@ -144,24 +144,31 @@ module mx_stabilizer_cutout(w = 2, d = 1) {
     }
 
     // Central bar cutout
-    translate([0, 0, eps + previewOffset + cutout_z_max]) {
-      hull()
-      translate([0, w <= 3 ? mx_stabilizer_cutout_depth_/2 - mx_stabilizer_cutout_center_to_front_ : 0, 0])
-      stabilizer_spacing_layout(w) {
-        prism([ eps,
-                w <= 3 ? mx_stabilizer_cutout_depth_ - 2*mx_stabilizer_channel_step_from_cutout_2u_ : mx_stabilizer_channel_width_narrow_,
-                mx_switch_pcbtop_to_platetop_ + eps + cutout_z_max ],
-              invert = true);
-      }
-    }
+    translate([0, 0, -mx_switch_pcbtop_to_platetop_ + previewOffset])
+    linear_extrude(height = mx_switch_pcbtop_to_platetop_ + eps + cutout_z_max)
+    central_bar_cutout_2d(w);
 
     // Cutout for stabilizer bar itself
-    translate([0, (-mx_stabilizer_cutout_center_to_front_ - mx_stabilizer_tab_barside_bottom_depth_)/2, -mx_switch_plate_thickness_ - previewOffset])
-    hull()
-    stabilizer_spacing_layout(w)
-    prism([ eps + 1,
-              mx_stabilizer_cutout_center_to_front_ + mx_stabilizer_tab_barside_bottom_depth_,
-              mx_switch_pcbtop_to_platetop_ - mx_switch_plate_thickness_ - 2*previewOffset],
-            invert = true);
+    translate([0, 0, -mx_switch_pcbtop_to_platetop_ + previewOffset])
+    linear_extrude(height = mx_switch_pcbtop_to_platetop_ - mx_switch_plate_thickness_ - 2*previewOffset)
+    installed_stabilizer_bar_cutout_2d(w);
   }
+}
+
+module central_bar_cutout_2d (w = 2) {
+  // Use thicker cutout for short stabilizers
+  wy = w <= 3 ? mx_stabilizer_cutout_depth_ - 2*mx_stabilizer_channel_step_from_cutout_2u_
+              : mx_stabilizer_channel_width_narrow_;
+  // Offset bar cutout from center
+  dy = w <= 3 ? mx_stabilizer_cutout_depth_/2 - mx_stabilizer_cutout_center_to_front_
+              : 0;
+  translate([0, dy])
+  square([stabilizer_spacing(w), wy], center = true);
+}
+
+module installed_stabilizer_bar_cutout_2d (w = 2) {
+  translate([0, (-mx_stabilizer_cutout_center_to_front_ - mx_stabilizer_tab_barside_bottom_depth_)/2])
+  square( [ stabilizer_spacing(w) + 1,
+            mx_stabilizer_cutout_center_to_front_ + mx_stabilizer_tab_barside_bottom_depth_],
+          center = true);
 }
