@@ -98,38 +98,19 @@ module mx_stabilizer_cutout(w = 2, d = 1) {
 
       translate([0, 0, eps + previewOffset]) {
         // Main cutout through plate
-        translate([0, mx_stabilizer_cutout_depth_/2 - mx_stabilizer_cutout_center_to_front_, 0]) {
-          prism([ mx_stabilizer_cutout_width_,
-                  mx_stabilizer_cutout_depth_,
-                  mx_switch_pcbtop_to_platetop_ + eps ],
-                invert = true);
-          
-          // Flange seating surface (top side), in case the key-hole is inset in plate
-          translate([0, (mx_stabilizer_tab_clipside_top_depth_ - mx_stabilizer_tab_barside_top_depth_)/2, -eps])
-          prism([ mx_stabilizer_cutout_width_,
-                    mx_stabilizer_cutout_depth_ + mx_stabilizer_tab_barside_top_depth_ + mx_stabilizer_tab_clipside_top_depth_,
-                    cutout_z_max + eps]);
+        translate([0, 0, -mx_switch_pcbtop_to_platetop_ - eps])
+        linear_extrude(height = mx_switch_pcbtop_to_platetop_ + eps, convexity = 2)
+        mx_stabilizer_housing_face_cutout();
 
-          // Tab seating surface (bottom side), in case the key-hole is inset in plate
-          translate([0, (mx_stabilizer_tab_clipside_bottom_depth_ - mx_stabilizer_tab_barside_bottom_depth_)/2, -mx_switch_plate_thickness_ - previewOffset])
-          prism([ mx_stabilizer_cutout_width_,
-                    mx_stabilizer_cutout_depth_ + mx_stabilizer_tab_barside_bottom_depth_ + mx_stabilizer_tab_clipside_bottom_depth_,
-                    mx_switch_pcbtop_to_platetop_ - mx_switch_plate_thickness_ - 2*previewOffset],
-                  invert = true);
-        }
+        // Flange seating surface (top side), in case the key-hole is inset in plate
+        translate([0, 0, -eps])
+        linear_extrude(height = cutout_z_max + eps, convexity = 2)
+        mx_stabilizer_housing_inset_cutout();
 
-        // Front tabs
-        translate([0, -mx_stabilizer_cutout_center_to_front_, 0])
-        prism([ mx_stabilizer_front_tab_width_,
-                2*(mx_stabilizer_front_tab_depth_from_back_ - mx_stabilizer_cutout_depth_),
-                mx_switch_pcbtop_to_platetop_ + eps ],
-              invert = true);
-        // Side tabs
-        translate([0, mx_stabilizer_side_tab_width_/2 + mx_stabilizer_side_tab_offset_from_center_, cutout_z_max])
-        prism([ 2*mx_stabilizer_side_tab_depth_from_middle_,
-                mx_stabilizer_side_tab_width_,
-                mx_switch_pcbtop_to_platetop_ + eps + cutout_z_max ],
-              invert = true);
+        // Tab seating surface (bottom side), in case the key-hole is inset in plate
+        translate([0, 0, - mx_switch_pcbtop_to_platetop_ + previewOffset])
+        linear_extrude(height = mx_switch_pcbtop_to_platetop_ - mx_switch_plate_thickness_ - 2*previewOffset, convexity = 2)
+        mx_stabilizer_housing_body_cutout();
       }
     }
 
@@ -143,6 +124,47 @@ module mx_stabilizer_cutout(w = 2, d = 1) {
     linear_extrude(height = mx_switch_pcbtop_to_platetop_ - mx_switch_plate_thickness_ - 2*previewOffset)
     installed_stabilizer_bar_cutout_2d(w);
   }
+}
+
+// 2D cutout for the housing if inset into the plate
+module mx_stabilizer_housing_inset_cutout () {
+  // Flange seating surface (top side), in case the key-hole is inset in plate
+  translate([0, mx_stabilizer_cutout_depth_/2 - mx_stabilizer_cutout_center_to_front_ + (mx_stabilizer_tab_clipside_top_depth_ - mx_stabilizer_tab_barside_top_depth_)/2])
+  square([mx_stabilizer_cutout_width_,
+                  mx_stabilizer_cutout_depth_ + mx_stabilizer_tab_barside_top_depth_ + mx_stabilizer_tab_clipside_top_depth_], center = true);
+
+  mx_stabilizer_housing_face_cutout();
+}
+
+// 2D cutout for the housing body, including cutouts beneath plates
+module mx_stabilizer_housing_body_cutout () {
+
+  // Tab seating surface (bottom side), in case the key-hole is inset in plate
+  translate([0, mx_stabilizer_cutout_depth_/2 - mx_stabilizer_cutout_center_to_front_ + (mx_stabilizer_tab_clipside_bottom_depth_ - mx_stabilizer_tab_barside_bottom_depth_)/2 ])
+  square([mx_stabilizer_cutout_width_,
+                  mx_stabilizer_cutout_depth_ + mx_stabilizer_tab_barside_bottom_depth_ + mx_stabilizer_tab_clipside_bottom_depth_],
+                  center = true);
+
+  mx_stabilizer_housing_face_cutout();
+}
+
+// 2D face cutout for the housing only
+module mx_stabilizer_housing_face_cutout () {
+  // Main Cutout
+  translate([0, mx_stabilizer_cutout_depth_/2 - mx_stabilizer_cutout_center_to_front_])
+  square([mx_stabilizer_cutout_width_, mx_stabilizer_cutout_depth_], center = true);
+
+  // Front tabs
+  translate([0, -mx_stabilizer_cutout_center_to_front_])
+  square([ mx_stabilizer_front_tab_width_,
+          2*(mx_stabilizer_front_tab_depth_from_back_ - mx_stabilizer_cutout_depth_) ],
+        center = true);
+
+  // Side tabs
+  translate([0, mx_stabilizer_side_tab_width_/2 + mx_stabilizer_side_tab_offset_from_center_])
+  square([ 2*mx_stabilizer_side_tab_depth_from_middle_,
+          mx_stabilizer_side_tab_width_ ],
+        center = true);
 }
 
 module central_bar_cutout_2d (w = 2) {
