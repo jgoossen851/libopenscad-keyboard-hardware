@@ -83,60 +83,70 @@ mx_stabilizer_tab_clipside_bottom_depth_ = 2.3;
 
 
 module mx_stabilizer_cutout(w = 2, d = 1) {
-  previewOffset = $preview ? 0.01 : 0; // Fix graphic rendering for adjacent surfaces
   eps = 0.01;
-
   cutout_z_max = 5; // Amount to extend cutout into space above plate's z=0 plane
 
   /// ToDo: Rotate module if d > w, and set d = w.
 
   if (w >= 2) {
+    // Main cutout through plate
+    translate([0, 0, -mx_switch_pcbtop_to_platetop_])
+    linear_extrude(height = mx_switch_pcbtop_to_platetop_ + eps, convexity = 2)
+    mx_stabilizer_face_cutout_2d(w);
 
-    A = stabilizer_spacing(w);
+    // Flange seating surface (top side), in case the key-hole is inset in plate
+    linear_extrude(height = cutout_z_max, convexity = 2)
+    mx_stabilizer_inset_cutout_2d(w);
 
-    stabilizer_spacing_layout(w) {
-
-      translate([0, 0, eps + previewOffset]) {
-        // Main cutout through plate
-        translate([0, 0, -mx_switch_pcbtop_to_platetop_ - eps])
-        linear_extrude(height = mx_switch_pcbtop_to_platetop_ + eps, convexity = 2)
-        mx_stabilizer_housing_face_cutout_2d();
-
-        // Flange seating surface (top side), in case the key-hole is inset in plate
-        translate([0, 0, -eps])
-        linear_extrude(height = cutout_z_max + eps, convexity = 2)
-        mx_stabilizer_housing_inset_cutout_2d();
-
-        // Tab seating surface (bottom side), in case the key-hole is inset in plate
-        translate([0, 0, - mx_switch_pcbtop_to_platetop_ + previewOffset])
-        linear_extrude(height = mx_switch_pcbtop_to_platetop_ - mx_switch_plate_thickness_ - 2*previewOffset, convexity = 2)
-        mx_stabilizer_housing_body_cutout_2d();
-      }
-    }
-
-    // Central bar cutout
-    translate([0, 0, -mx_switch_pcbtop_to_platetop_ + previewOffset])
-    linear_extrude(height = mx_switch_pcbtop_to_platetop_ + eps + cutout_z_max)
-    mx_stabilizer_central_bar_cutout_2d(w);
-
-    // Cutout for stabilizer bar itself
-    translate([0, 0, -mx_switch_pcbtop_to_platetop_ + previewOffset])
-    linear_extrude(height = mx_switch_pcbtop_to_platetop_ - mx_switch_plate_thickness_ - 2*previewOffset)
-    mx_stabilizer_installed_bar_cutout_2d(w);
+    // Tab seating surface (bottom side), in case the key-hole is inset in plate
+    translate([0, 0, - mx_switch_pcbtop_to_platetop_])
+    linear_extrude(height = mx_switch_pcbtop_to_platetop_ - mx_switch_plate_thickness_, convexity = 2)
+    mx_stabilizer_body_cutout_2d(w);
   }
 }
 
-// 2D cutout for the housing if inset into the plate
+// 2D cutout above plate for stabilizer seating surface (includes nominal cutout)
+module mx_stabilizer_inset_cutout_2d (w = 2) {
+  // Flange seating surface (top side), in case the key-hole is inset in plate
+  stabilizer_spacing_layout(w)
+  mx_stabilizer_housing_inset_cutout_2d();
+
+  // Nominal cutout
+  mx_stabilizer_face_cutout_2d(w);
+}
+
+// 2D cutout beneath plate for clearance to stabilizer tabs and mechanisms (includes nominal cutout)
+module mx_stabilizer_body_cutout_2d (w = 2) {
+  // Tab seating surface (bottom side), in case the key-hole is inset in plate
+  stabilizer_spacing_layout(w)
+  mx_stabilizer_housing_body_cutout_2d();
+
+  // Cutout for stabilizer bar itself
+  mx_stabilizer_installed_bar_cutout_2d(w);
+
+  // Nominal cutout
+  mx_stabilizer_face_cutout_2d(w);
+}
+
+// 2D nominal cutout for stabilizer through plate
+module mx_stabilizer_face_cutout_2d (w = 2) {
+  // Main cutout through plate (housing)
+  stabilizer_spacing_layout(w)
+  mx_stabilizer_housing_face_cutout_2d();
+
+  // Central bar cutout
+  mx_stabilizer_central_bar_cutout_2d(w);
+}
+
+// Additional 2D cutout for the housing if inset into the plate (does not include main housing cutout)
 module mx_stabilizer_housing_inset_cutout_2d () {
   // Flange seating surface (top side), in case the key-hole is inset in plate
   translate([0, mx_stabilizer_cutout_depth_/2 - mx_stabilizer_cutout_center_to_front_ + (mx_stabilizer_tab_clipside_top_depth_ - mx_stabilizer_tab_barside_top_depth_)/2])
   square([mx_stabilizer_cutout_width_,
                   mx_stabilizer_cutout_depth_ + mx_stabilizer_tab_barside_top_depth_ + mx_stabilizer_tab_clipside_top_depth_], center = true);
-
-  mx_stabilizer_housing_face_cutout_2d();
 }
 
-// 2D cutout for the housing body, including cutouts beneath plates
+// Additional 2D cutout beneath plate for housing tabs, etc. (does not include main housing cutout)
 module mx_stabilizer_housing_body_cutout_2d () {
 
   // Tab seating surface (bottom side), in case the key-hole is inset in plate
@@ -144,8 +154,6 @@ module mx_stabilizer_housing_body_cutout_2d () {
   square([mx_stabilizer_cutout_width_,
                   mx_stabilizer_cutout_depth_ + mx_stabilizer_tab_barside_bottom_depth_ + mx_stabilizer_tab_clipside_bottom_depth_],
                   center = true);
-
-  mx_stabilizer_housing_face_cutout_2d();
 }
 
 // 2D face cutout for the housing only
