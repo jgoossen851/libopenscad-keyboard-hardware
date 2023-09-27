@@ -100,44 +100,44 @@ module mx_stabilizer_cutout(w = 2, d = 1) {
         // Main cutout through plate
         translate([0, 0, -mx_switch_pcbtop_to_platetop_ - eps])
         linear_extrude(height = mx_switch_pcbtop_to_platetop_ + eps, convexity = 2)
-        mx_stabilizer_housing_face_cutout();
+        mx_stabilizer_housing_face_cutout_2d();
 
         // Flange seating surface (top side), in case the key-hole is inset in plate
         translate([0, 0, -eps])
         linear_extrude(height = cutout_z_max + eps, convexity = 2)
-        mx_stabilizer_housing_inset_cutout();
+        mx_stabilizer_housing_inset_cutout_2d();
 
         // Tab seating surface (bottom side), in case the key-hole is inset in plate
         translate([0, 0, - mx_switch_pcbtop_to_platetop_ + previewOffset])
         linear_extrude(height = mx_switch_pcbtop_to_platetop_ - mx_switch_plate_thickness_ - 2*previewOffset, convexity = 2)
-        mx_stabilizer_housing_body_cutout();
+        mx_stabilizer_housing_body_cutout_2d();
       }
     }
 
     // Central bar cutout
     translate([0, 0, -mx_switch_pcbtop_to_platetop_ + previewOffset])
     linear_extrude(height = mx_switch_pcbtop_to_platetop_ + eps + cutout_z_max)
-    central_bar_cutout_2d(w);
+    mx_stabilizer_central_bar_cutout_2d(w);
 
     // Cutout for stabilizer bar itself
     translate([0, 0, -mx_switch_pcbtop_to_platetop_ + previewOffset])
     linear_extrude(height = mx_switch_pcbtop_to_platetop_ - mx_switch_plate_thickness_ - 2*previewOffset)
-    installed_stabilizer_bar_cutout_2d(w);
+    mx_stabilizer_installed_bar_cutout_2d(w);
   }
 }
 
 // 2D cutout for the housing if inset into the plate
-module mx_stabilizer_housing_inset_cutout () {
+module mx_stabilizer_housing_inset_cutout_2d () {
   // Flange seating surface (top side), in case the key-hole is inset in plate
   translate([0, mx_stabilizer_cutout_depth_/2 - mx_stabilizer_cutout_center_to_front_ + (mx_stabilizer_tab_clipside_top_depth_ - mx_stabilizer_tab_barside_top_depth_)/2])
   square([mx_stabilizer_cutout_width_,
                   mx_stabilizer_cutout_depth_ + mx_stabilizer_tab_barside_top_depth_ + mx_stabilizer_tab_clipside_top_depth_], center = true);
 
-  mx_stabilizer_housing_face_cutout();
+  mx_stabilizer_housing_face_cutout_2d();
 }
 
 // 2D cutout for the housing body, including cutouts beneath plates
-module mx_stabilizer_housing_body_cutout () {
+module mx_stabilizer_housing_body_cutout_2d () {
 
   // Tab seating surface (bottom side), in case the key-hole is inset in plate
   translate([0, mx_stabilizer_cutout_depth_/2 - mx_stabilizer_cutout_center_to_front_ + (mx_stabilizer_tab_clipside_bottom_depth_ - mx_stabilizer_tab_barside_bottom_depth_)/2 ])
@@ -145,11 +145,11 @@ module mx_stabilizer_housing_body_cutout () {
                   mx_stabilizer_cutout_depth_ + mx_stabilizer_tab_barside_bottom_depth_ + mx_stabilizer_tab_clipside_bottom_depth_],
                   center = true);
 
-  mx_stabilizer_housing_face_cutout();
+  mx_stabilizer_housing_face_cutout_2d();
 }
 
 // 2D face cutout for the housing only
-module mx_stabilizer_housing_face_cutout () {
+module mx_stabilizer_housing_face_cutout_2d () {
   // Main Cutout
   translate([0, mx_stabilizer_cutout_depth_/2 - mx_stabilizer_cutout_center_to_front_])
   square([mx_stabilizer_cutout_width_, mx_stabilizer_cutout_depth_], center = true);
@@ -167,7 +167,7 @@ module mx_stabilizer_housing_face_cutout () {
         center = true);
 }
 
-module central_bar_cutout_2d (w = 2) {
+module mx_stabilizer_central_bar_cutout_2d (w = 2) {
   // Use thicker cutout for short stabilizers
   wy = w <= 3 ? mx_stabilizer_cutout_depth_ - 2*mx_stabilizer_channel_step_from_cutout_2u_
               : mx_stabilizer_channel_width_narrow_;
@@ -178,7 +178,7 @@ module central_bar_cutout_2d (w = 2) {
   square([stabilizer_spacing(w), wy], center = true);
 }
 
-module installed_stabilizer_bar_cutout_2d (w = 2) {
+module mx_stabilizer_installed_bar_cutout_2d (w = 2) {
   translate([0, (-mx_stabilizer_cutout_center_to_front_ - mx_stabilizer_tab_barside_bottom_depth_)/2])
   square( [ stabilizer_spacing(w) + 1,
             mx_stabilizer_cutout_center_to_front_ + mx_stabilizer_tab_barside_bottom_depth_],
