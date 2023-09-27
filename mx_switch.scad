@@ -6,8 +6,8 @@ $fa = $preview ? 20 : 1;    // minimum angle for a fragment
 $fs = $preview ? 1 : 0.25;  // minimum size of a fragment
 
 // Constants, from datasheet
-mx_switch_plate_thickness_  = 1.5;    // mm, 0.06"
-mx_switch_pcb_thickness_    = 1.5;    // mm, 0.06"
+mx_switch_plate_thickness_  = 1.6;    // mm, 0.06"
+mx_switch_pcb_thickness_    = 1.6;    // mm, 0.06"
 mx_switch_nominal_pitch_    = 19.05;  // mm, 0.75"
 
 // Switch configurations to test
@@ -84,6 +84,7 @@ module mx_switch_test_jig(t = mx_switch_plate_thickness_, w = 1, d = 1, lip = 0)
 
 // ### Module ########################################################
 
+// Full colored 3D switch assembly
 module mx_switch( stem = "Red", top = "#222222", bottom = "#222222", alpha = 1,
                   led = false, diode = false, fixation = false ) {
   color( bottom )             mx_switch_body_bottom();
@@ -122,73 +123,35 @@ mx_switch_flange_height_ = 1;
 // Publicly available constants
 function mx_switch_plate_to_keycap_seat() = mx_switch_body_height_ - mx_switch_pcbtop_to_platetop_;
 
-
+// 3D cutout of entire switch assembly
 module mx_switch_cutout(offset = 0.01, led = false, diode = false, fixation = false) {
   previewOffset = $preview ? 0.01 : 0; // Fix graphic rendering for adjacent surfaces
   eps = 0.01;
-  tab_cutout_width = 6;
-  tab_cutout_depth = 1;
 
   cutout_z_max = 5; // Amount to extend cutout into space above plate's z=0 plane
   
   // Main cutout through plate
-  translate([0, 0, eps + previewOffset])
-  prism([ mx_switch_frame_cutout_side_,
-          mx_switch_frame_cutout_side_,
-          mx_switch_pcbtop_to_platetop_ + eps ],
-        invert = true);
+  translate([0, 0, -mx_switch_pcbtop_to_platetop_ + previewOffset])
+  linear_extrude(height = mx_switch_pcbtop_to_platetop_ + eps)
+  mx_switch_face_2d();
+
   // Flange seating surface, in case the key-hole is inset in plate
   translate([0, 0, previewOffset])
-  prism([ mx_switch_flange_side_,
-          mx_switch_flange_side_,
-          cutout_z_max ]);
+  linear_extrude(height = cutout_z_max)
+  mx_switch_inset_2d();
+
   // Tabs cutout
-  for (y = [-1, 1] / 2 * mx_switch_frame_cutout_side_)
-  translate([0, y, -mx_switch_plate_thickness_ - previewOffset])
-  prism([ tab_cutout_width,
-          2*tab_cutout_depth,
-          mx_switch_pcbtop_to_platetop_ - mx_switch_plate_thickness_ - 2*previewOffset ],
-        invert = true);
-  // Center Pin
-  mx_switch_center_pin(eps);
-  // PCB pins
-  translate([0, 0, -mx_switch_pcbtop_to_platetop_ - mx_switch_pin_length_]){
-    // Fixation Pins
-    if (fixation)
-    mx_switch_pin_( v = mx_switch_fixation_pin_location_,
-                    d = mx_switch_fixation_pin_diameter_,
-                    h = mx_switch_pin_length_ + eps);
-    // Keyswitch Pins
-    mx_switch_pin_( v = mx_switch_keyswitch_pin_location_,
-                    d = mx_switch_keyswitch_pin_diameter_,
-                    h = mx_switch_pin_length_ + eps);
-    // Diode Pins
-    if (diode)
-    mx_switch_pin_( v = mx_switch_diode_pin_location_,
-                    d = mx_switch_diode_pin_diameter_,
-                    h = mx_switch_pin_length_ + eps);
-    // LED Pins
-    if(led)
-    mx_switch_pin_( v = mx_switch_led_pin_location_,
-                    d = mx_switch_diode_pin_diameter_,
-                    h = mx_switch_pin_length_ + eps);
-  }
-}
+  translate([0, 0, -mx_switch_pcbtop_to_platetop_ + previewOffset])
+  linear_extrude(height = mx_switch_pcbtop_to_platetop_ - mx_switch_plate_thickness_ - 2*previewOffset)
+  mx_switch_body_2d();
 
-module mx_switch_center_pin(eps = 0) {
+  // Center pin and PCB pins
   translate([0, 0, -mx_switch_pcbtop_to_platetop_ - mx_switch_pin_length_])
-  mx_switch_pin_( v = mx_switch_center_pin_location_,
-                  d = mx_switch_center_pin_diameter_,
-                  h = mx_switch_pin_length_ + eps);
+  linear_extrude(height = mx_switch_pin_length_ + eps, convexity = 2)
+  mx_switch_pins_2d(stabilizer = true, switch = true, led = led, diode = diode, fixation = fixation);
 }
 
-module mx_switch_pin_(v, d, h) {
-  for (xy = v) {
-    translate(concat(xy, 0))
-    cylinder(h = h, d = d);
-  }
-}
-
+// 3D model of plastic switch top, excluding keycap stem
 module mx_switch_body_top() {
   flange_width = 0.5;
   body_taper_top = 1.5;
@@ -200,6 +163,7 @@ module mx_switch_body_top() {
                         taper = body_taper_top);
 }
 
+// 3D model of plastic switch base, including central stabilizer pin
 module mx_switch_body_bottom() {
   eps = 0.01;
 
@@ -244,9 +208,8 @@ module mx_switch_body_bottom() {
                                 body_base_width,
                                 mx_switch_pcbtop_to_platetop_ + mx_switch_flange_height_],
                               taper = -body_taper_bottom);
-        prism( [mx_switch_frame_cutout_side_,
-                mx_switch_frame_cutout_side_,
-                mx_switch_pcbtop_to_platetop_ + mx_switch_flange_height_ ] );
+        linear_extrude(height = mx_switch_pcbtop_to_platetop_ + mx_switch_flange_height_)
+        mx_switch_face_2d();
       }
     }
     // Tab cutouts
@@ -260,13 +223,14 @@ module mx_switch_body_bottom() {
       }
     }
   }
-      // Bottom Stabilizer Pin
-      translate([0, 0, -mx_switch_pcbtop_to_platetop_ - body_stab_pin_depth])
-      mx_switch_pin_( v = mx_switch_center_pin_location_,
-                d = mx_switch_center_pin_diameter_,
-                h = body_stab_pin_depth);
+
+  // Bottom Stabilizer Pin
+  translate([0, 0, -mx_switch_pcbtop_to_platetop_ - body_stab_pin_depth])
+  linear_extrude(height = body_stab_pin_depth)
+  mx_switch_pins_2d (stabilizer = true, switch = false);
 }
 
+// 3D model of Cherry-style keycap stem
 module mx_switch_stem() {
   stem_thickness = 1.17;
   stem_width = 4;
@@ -297,29 +261,66 @@ module mx_switch_stem() {
   }
 }
 
+// 3D model of all pins, excluding centeral stabilizer
 module mx_switch_pins(led = false, diode = false, fixation = false) {
   eps = 0.1;
   pin_diameter = 1;
 
-  translate([0, 0, -mx_switch_pcbtop_to_platetop_ - mx_switch_pin_length_]){
-    // Fixation Pins
-    if (fixation)
-    mx_switch_pin_( v = mx_switch_fixation_pin_location_,
-                    d = mx_switch_fixation_pin_diameter_ - 0.5,
-                    h = mx_switch_pin_length_ + eps);
-    // Keyswitch Pins
-    mx_switch_pin_( v = mx_switch_keyswitch_pin_location_,
-                    d = mx_switch_keyswitch_pin_diameter_ - 0.5,
-                    h = mx_switch_pin_length_ + eps);
-    // Diode Pins
-    if (diode)
-    mx_switch_pin_( v = mx_switch_diode_pin_location_,
-                    d = mx_switch_diode_pin_diameter_ - 0.5,
-                    h = mx_switch_pin_length_ + eps);
-    // LED Pins
-    if (led)
-    mx_switch_pin_( v = mx_switch_led_pin_location_,
-                    d = mx_switch_diode_pin_diameter_ - 0.5,
-                    h = mx_switch_pin_length_ + eps);
+  translate([0, 0, -mx_switch_pcbtop_to_platetop_ - mx_switch_pin_length_])
+  linear_extrude(height = mx_switch_pin_length_ + eps)
+  mx_switch_pins_2d(stabilizer = false, switch = true, led = led, diode = diode, fixation = fixation, clearance = -0.5);
+}
+
+// 2D outline of cutout for an inset key (applied at the location of the nominal plate top)
+module mx_switch_inset_2d () {
+  square(mx_switch_flange_side_, center = true);
+}
+
+// 2D outline of top plate cutout for switch, including clearance for body tabs
+module mx_switch_body_2d () {
+  tab_cutout_width = 6;
+  tab_cutout_depth = 1;
+
+  square( [ tab_cutout_width,
+            mx_switch_frame_cutout_side_ + 2*tab_cutout_depth],
+          center = true);
+
+  mx_switch_face_2d();
+}
+
+// 2D outline of top plate cutout for switch
+module mx_switch_face_2d () {
+  square(mx_switch_frame_cutout_side_, center = true);
+}
+
+// 2D outline of pin cutouts
+module mx_switch_pins_2d (stabilizer = true, switch = true, led = false, diode = false, fixation = false, clearance = 0) {
+  // Central Stabilizer
+  if (stabilizer)
+  mx_switch_pin_2d_( v = mx_switch_center_pin_location_,
+                     d = mx_switch_center_pin_diameter_); // No clearance on stabilizer for tight fit
+  // Fixation Pins
+  if (fixation)
+  mx_switch_pin_2d_( v = mx_switch_fixation_pin_location_,
+                     d = mx_switch_fixation_pin_diameter_ + clearance);
+  // Keyswitch Pins
+  if (switch)
+  mx_switch_pin_2d_( v = mx_switch_keyswitch_pin_location_,
+                     d = mx_switch_keyswitch_pin_diameter_ + clearance);
+  // Diode Pins
+  if (diode)
+  mx_switch_pin_2d_( v = mx_switch_diode_pin_location_,
+                     d = mx_switch_diode_pin_diameter_ + clearance);
+  // LED Pins
+  if (led)
+  mx_switch_pin_2d_( v = mx_switch_led_pin_location_,
+                     d = mx_switch_diode_pin_diameter_ + clearance);
+}
+
+// Places a circle of diameter d at each (x,y) pair given in v
+module mx_switch_pin_2d_ (v, d) {
+  for (xy = v) {
+    translate(xy)
+    circle(d = d);
   }
 }
