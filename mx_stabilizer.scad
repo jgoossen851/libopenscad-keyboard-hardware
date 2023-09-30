@@ -76,10 +76,10 @@ mx_stabilizer_channel_step_from_cutout_2u_  =  0.80; // mm, 0.0315"
 mx_stabilizer_channel_width_narrow_         =  4.6;  // mm, 0.181"
 
 // Assumed constants
-mx_stabilizer_tab_barside_top_depth_ = 2.5;
-mx_stabilizer_tab_barside_bottom_depth_ = 3.55;
-mx_stabilizer_tab_clipside_top_depth_ = 3;
-mx_stabilizer_tab_clipside_bottom_depth_ = 2.3;
+mx_stabilizer_tab_barside_top_depth_      = 2.5;
+mx_stabilizer_tab_barside_bottom_depth_   = 3.55;
+mx_stabilizer_tab_clipside_top_depth_     = 3;
+mx_stabilizer_tab_clipside_bottom_depth_  = 0.5;
 
 
 module mx_stabilizer_cutout(w = 2, d = 1) {
@@ -99,7 +99,7 @@ module mx_stabilizer_cutout(w = 2, d = 1) {
     mx_stabilizer_inset_cutout_2d(w);
 
     // Tab seating surface (bottom side), in case the key-hole is inset in plate
-    translate([0, 0, - mx_switch_pcbtop_to_platetop_])
+    translate([0, 0, -mx_switch_pcbtop_to_platetop_])
     linear_extrude(height = mx_switch_pcbtop_to_platetop_ - mx_switch_plate_thickness_, convexity = 2)
     mx_stabilizer_body_cutout_2d(w);
   }
